@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'kotlin-kapt'
 }
 
 android {
@@ -80,6 +81,11 @@ android {
 }
 
 dependencies {
+    // Exclude duplicate JetBrains annotations that cause class conflicts
+    configurations.all {
+        exclude group: 'org.jetbrains', module: 'annotations-java5'
+    }
+
     // Core
     implementation 'androidx.core:core-ktx:1.12.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
@@ -108,7 +114,7 @@ dependencies {
     // Room (local model metadata DB)
     implementation 'androidx.room:room-runtime:2.6.1'
     implementation 'androidx.room:room-ktx:2.6.1'
-    annotationProcessor 'androidx.room:room-compiler:2.6.1'
+    kapt 'androidx.room:room-compiler:2.6.1'
 
     // WorkManager (background downloads)
     implementation 'androidx.work:work-runtime-ktx:2.9.0'

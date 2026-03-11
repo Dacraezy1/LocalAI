@@ -4,34 +4,34 @@ project(localai)
 set(CMAKE_CXX_STANDARD 17)
 
 # ─── llama.cpp source ────────────────────────────────────────────────────────
-# Clone llama.cpp into app/src/main/cpp/llama.cpp/
-# git clone https://github.com/ggerganov/llama.cpp app/src/main/cpp/llama.cpp
-
 set(LLAMA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/llama.cpp)
 
-# ARM64 optimizations for Unisoc T610 (Cortex-A75 + Cortex-A55)
-set(LLAMA_NATIVE OFF)
-set(LLAMA_BUILD_TESTS OFF)
-set(LLAMA_BUILD_EXAMPLES OFF)
-set(LLAMA_BUILD_SERVER OFF)
+# Build flags for llama.cpp
+set(LLAMA_NATIVE OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(LLAMA_BUILD_SERVER OFF CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 
-# Enable NEON SIMD (ARM64 always has NEON)
+# ARM64 optimizations for Unisoc T610
 add_compile_options(-march=armv8-a+dotprod -O3 -ffast-math)
 
-# Add llama.cpp as subdirectory
+# Add llama.cpp as subdirectory - it defines targets: llama, common, ggml
 add_subdirectory(${LLAMA_DIR} llama_build)
 
 # ─── Our JNI bridge ──────────────────────────────────────────────────────────
-add_library(llama SHARED llama_jni.cpp)
+# IMPORTANT: name must NOT be "llama" - that's already taken by llama.cpp
+add_library(localai_jni SHARED llama_jni.cpp)
 
-target_include_directories(llama PRIVATE
+target_include_directories(localai_jni PRIVATE
     ${LLAMA_DIR}
+    ${LLAMA_DIR}/include
     ${LLAMA_DIR}/common
+    ${LLAMA_DIR}/ggml/include
 )
 
-target_link_libraries(llama
-    llama_static      # llama.cpp static lib
-    common            # llama.cpp common utils
+target_link_libraries(localai_jni
+    llama          # llama.cpp shared/static lib (defined by llama.cpp's CMake)
     android
     log
 )

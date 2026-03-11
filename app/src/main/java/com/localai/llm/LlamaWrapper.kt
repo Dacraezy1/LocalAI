@@ -20,7 +20,7 @@ object LlamaWrapper {
 
     init {
         try {
-            System.loadLibrary("llama")
+            System.loadLibrary("localai_jni")
             Log.i(TAG, "llama.cpp native library loaded")
         } catch (e: UnsatisfiedLinkError) {
             Log.e(TAG, "Failed to load llama.cpp: ${e.message}")
