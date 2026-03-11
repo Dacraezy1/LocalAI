@@ -26,7 +26,6 @@ add_library(localai_jni SHARED llama_jni.cpp)
 target_include_directories(localai_jni PRIVATE
     ${LLAMA_DIR}
     ${LLAMA_DIR}/include
-    ${LLAMA_DIR}/common
     ${LLAMA_DIR}/ggml/include
 )
 
