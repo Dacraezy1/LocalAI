@@ -28,7 +28,7 @@ android {
                           "-DLLAMA_NATIVE=OFF",
                           "-DLLAMA_BUILD_TESTS=OFF",
                           "-DLLAMA_BUILD_EXAMPLES=OFF"
-                cppFlags "-std=c++17 -O3 -march=armv8-a+dotprod -ffast-math"
+                cppFlags "-std=c++17 -O3 -march=armv8-a+dotprod -fno-finite-math-only"
             }
         }
     }

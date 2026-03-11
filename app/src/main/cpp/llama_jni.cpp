@@ -119,7 +119,7 @@ Java_com_localai_llm_LlamaWrapper_nativeGenerate(
         if (llama_token_is_eog(lc->model, tok)) break;
 
         char piece[256];
-        int plen = llama_token_to_piece(lc->model, tok, piece, sizeof(piece)-1, false);
+        int plen = llama_token_to_piece(lc->model, tok, piece, sizeof(piece)-1, 0, false);
         if (plen <= 0) break;
         piece[plen] = '\0';
         result.append(piece, plen);
@@ -145,9 +145,11 @@ JNIEXPORT jstring JNICALL
 Java_com_localai_llm_LlamaWrapper_nativeGetModelInfo(JNIEnv* env, jobject, jlong ptr) {
     auto* lc = get(ptr);
     if (!lc || !lc->model) return env->NewStringUTF("{}");
+    char name[256] = {};
+    llama_model_desc(lc->model, name, sizeof(name));
     char buf[512];
     snprintf(buf, sizeof(buf), "{\"name\":\"%s\",\"n_ctx\":%d,\"n_vocab\":%d}",
-        llama_model_desc(lc->model), llama_n_ctx(lc->ctx), llama_n_vocab(lc->model));
+        name, llama_n_ctx(lc->ctx), llama_n_vocab(lc->model));
     return env->NewStringUTF(buf);
 }
 

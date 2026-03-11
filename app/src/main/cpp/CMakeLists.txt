@@ -13,8 +13,8 @@ set(LLAMA_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(LLAMA_BUILD_SERVER OFF CACHE BOOL "" FORCE)
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 
-# ARM64 optimizations for Unisoc T610
-add_compile_options(-march=armv8-a+dotprod -O3 -ffast-math)
+# ARM64 optimizations - NOTE: no -ffast-math, it enables -ffinite-math-only which breaks ggml
+add_compile_options(-march=armv8-a+dotprod -O3 -fno-finite-math-only)
 
 # Add llama.cpp as subdirectory - it defines targets: llama, common, ggml
 add_subdirectory(${LLAMA_DIR} llama_build)
