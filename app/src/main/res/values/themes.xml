@@ -3,11 +3,10 @@
 
     <style name="Theme.LocalAI" parent="Theme.Material3.Dark.NoActionBar">
         <item name="colorPrimary">@color/accent</item>
-        <item name="colorPrimaryVariant">@color/accent_dark</item>
+        <item name="colorSecondary">@color/accent_dark</item>
         <item name="colorOnPrimary">@color/on_accent</item>
         <item name="colorSurface">@color/surface</item>
         <item name="colorOnSurface">@color/on_surface</item>
-        <item name="colorBackground">@color/background</item>
         <item name="android:colorBackground">@color/background</item>
         <item name="android:statusBarColor">@color/surface</item>
         <item name="android:navigationBarColor">@color/surface</item>
