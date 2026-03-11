@@ -130,7 +130,7 @@ class ChatActivity : AppCompatActivity() {
             viewModel.activeModel.collectLatest { model ->
                 if (model != null) {
                     supportActionBar?.subtitle = model.displayName
-                    viewModel.loadModel(model)
+                    viewModel.loadModelIfNeeded(model)
                 } else {
                     supportActionBar?.subtitle = "No model selected"
                 }

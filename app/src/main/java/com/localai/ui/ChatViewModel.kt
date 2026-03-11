@@ -46,17 +46,23 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
     // ── Model loading ────────────────────────────────────────────────────────
 
-    fun loadModel(model: ModelEntity) {
+    private var loadedModelId: String? = null
+
+    fun loadModelIfNeeded(model: ModelEntity) {
+        // Guard: skip if this model is already loaded and we're ready
+        if (model.id == loadedModelId && _uiState.value == UiState.Ready) return
+
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.value = UiState.LoadingModel
             LlamaWrapper.unloadModel()
             chatHistory.clear()
+            loadedModelId = null
 
             val params = InferenceParams.forModel(
                 when {
-                    model.sizeBytes < 800_000_000L -> com.localai.llm.ModelSize.TINY
+                    model.sizeBytes < 800_000_000L   -> com.localai.llm.ModelSize.TINY
                     model.sizeBytes < 2_000_000_000L -> com.localai.llm.ModelSize.SMALL
-                    else -> com.localai.llm.ModelSize.MEDIUM
+                    else                             -> com.localai.llm.ModelSize.MEDIUM
                 }
             )
             currentParams = params
@@ -64,9 +70,10 @@ class ChatViewModel(app: Application) : AndroidViewModel(app) {
 
             val result = LlamaWrapper.loadModel(model.filePath, params)
             if (result.isSuccess) {
+                loadedModelId = model.id
                 _uiState.value = UiState.Ready
-                db.modelDao().updateLastUsed(model.id)
-                addSystemMessage("✓ ${model.displayName} loaded. Context: ${params.contextSize} tokens.")
+                // NOTE: do NOT call updateLastUsed here — it triggers observeActive() re-emission
+                addSystemMessage("${model.displayName} loaded. Context ${params.contextSize} tokens.")
             } else {
                 _uiState.value = UiState.Error(result.exceptionOrNull()?.message ?: "Load failed")
             }
