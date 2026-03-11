@@ -2,11 +2,11 @@ package com.localai.llm
 
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.isActive
-import kotlin.coroutines.coroutineContext
+import kotlinx.coroutines.withContext
 
 /**
  * JNI bridge to llama.cpp native library.
@@ -17,6 +17,8 @@ object LlamaWrapper {
     private const val TAG = "LlamaWrapper"
     private var nativeContext: Long = 0L
     private var isLoaded = false
+
+    @Volatile private var abortRequested = false
 
     init {
         try {
@@ -31,23 +33,14 @@ object LlamaWrapper {
 
     private external fun nativeInit(): Long
     private external fun nativeLoadModel(
-        ctx: Long,
-        modelPath: String,
-        nCtx: Int,
-        nThreads: Int,
-        nGpuLayers: Int,
-        useMmap: Boolean,
-        useMlock: Boolean
+        ctx: Long, modelPath: String,
+        nCtx: Int, nThreads: Int, nGpuLayers: Int,
+        useMmap: Boolean, useMlock: Boolean
     ): Boolean
     private external fun nativeGenerate(
-        ctx: Long,
-        prompt: String,
-        maxTokens: Int,
-        temperature: Float,
-        topP: Float,
-        topK: Int,
-        repeatPenalty: Float,
-        callback: TokenCallback
+        ctx: Long, prompt: String,
+        maxTokens: Int, temperature: Float, topP: Float,
+        topK: Int, repeatPenalty: Float, callback: TokenCallback
     ): String
     private external fun nativeFreeModel(ctx: Long)
     private external fun nativeGetModelInfo(ctx: Long): String
@@ -56,30 +49,23 @@ object LlamaWrapper {
 
     // ── Public API ───────────────────────────────────────────────────────────
 
-    fun loadModel(
-        modelPath: String,
-        params: InferenceParams = InferenceParams()
-    ): Result<ModelInfo> {
+    fun loadModel(modelPath: String, params: InferenceParams = InferenceParams()): Result<ModelInfo> {
         return try {
-            if (nativeContext == 0L) {
-                nativeContext = nativeInit()
-            }
+            if (nativeContext == 0L) nativeContext = nativeInit()
             if (nativeContext == 0L) return Result.failure(Exception("Failed to init native context"))
 
-            val success = nativeLoadModel(
+            val ok = nativeLoadModel(
                 ctx        = nativeContext,
                 modelPath  = modelPath,
                 nCtx       = params.contextSize,
                 nThreads   = params.threads,
-                nGpuLayers = 0,         // Unisoc T610 has no Vulkan compute
-                useMmap    = true,      // mmap avoids loading full model into RAM
-                useMlock   = false      // Don't lock pages on 4GB device
+                nGpuLayers = 0,
+                useMmap    = true,
+                useMlock   = false
             )
-
-            if (success) {
+            if (ok) {
                 isLoaded = true
-                val infoJson = nativeGetModelInfo(nativeContext)
-                Result.success(ModelInfo.fromJson(infoJson))
+                Result.success(ModelInfo.fromJson(nativeGetModelInfo(nativeContext)))
             } else {
                 Result.failure(Exception("Native model load returned false"))
             }
@@ -89,48 +75,9 @@ object LlamaWrapper {
         }
     }
 
-    fun generateStream(
-        prompt: String,
-        params: InferenceParams = InferenceParams()
-    ): Flow<String> = flow {
-        if (!isLoaded || nativeContext == 0L) {
-            emit("[ERROR] No model loaded")
-            return@flow
-        }
-
-        val buffer = StringBuilder()
-        var aborted = false
-
-        val callback = object : TokenCallback {
-            override fun onToken(token: String): Boolean {
-                if (!coroutineContext.isActive) {
-                    aborted = true
-                    return false  // signal native to stop
-                }
-                return true
-            }
-        }
-
-        // Run blocking native call on IO dispatcher, emit tokens as they arrive
-        // For true streaming we use the callback + a shared channel
-        val result = nativeGenerate(
-            ctx           = nativeContext,
-            prompt        = prompt,
-            maxTokens     = params.maxTokens,
-            temperature   = params.temperature,
-            topP          = params.topP,
-            topK          = params.topK,
-            repeatPenalty = params.repeatPenalty,
-            callback      = callback
-        )
-
-        if (!aborted) emit(result)
-
-    }.flowOn(Dispatchers.IO)
-
     /**
-     * Streaming version using the native callback for token-by-token output.
-     * This is the preferred method for chat UI.
+     * Token-by-token streaming using a Channel as the bridge between
+     * the native callback thread and the Flow collector.
      */
     fun generateTokenStream(
         prompt: String,
@@ -141,44 +88,51 @@ object LlamaWrapper {
             return@flow
         }
 
-        val tokens = mutableListOf<String>()
-        var done = false
+        abortRequested = false
 
-        // Native callback collects tokens
+        // Channel bridges native thread → coroutine flow
+        // Capacity 0 = rendezvous; use buffered to avoid blocking native thread
+        val channel = Channel<String>(capacity = Channel.UNLIMITED)
+
         val cb = object : TokenCallback {
             override fun onToken(token: String): Boolean {
-                synchronized(tokens) { tokens.add(token) }
+                if (abortRequested) return false
+                channel.trySend(token)
                 return true
             }
         }
 
-        // Launch native in background, poll tokens for streaming feel
+        // Run blocking native call on IO thread
         val thread = Thread {
-            nativeGenerate(
-                ctx           = nativeContext,
-                prompt        = prompt,
-                maxTokens     = params.maxTokens,
-                temperature   = params.temperature,
-                topP          = params.topP,
-                topK          = params.topK,
-                repeatPenalty = params.repeatPenalty,
-                callback      = cb
-            )
-            done = true
+            try {
+                nativeGenerate(
+                    ctx           = nativeContext,
+                    prompt        = prompt,
+                    maxTokens     = params.maxTokens,
+                    temperature   = params.temperature,
+                    topP          = params.topP,
+                    topK          = params.topK,
+                    repeatPenalty = params.repeatPenalty,
+                    callback      = cb
+                )
+            } finally {
+                channel.close()
+            }
         }
         thread.start()
 
-        var lastIndex = 0
-        while (!done || lastIndex < tokens.size) {
-            synchronized(tokens) {
-                while (lastIndex < tokens.size) {
-                    emit(tokens[lastIndex++])
-                }
-            }
-            if (!done) kotlinx.coroutines.delay(16) // ~60fps polling
+        // Collect tokens from channel and emit — no synchronized needed
+        for (token in channel) {
+            emit(token)
         }
 
     }.flowOn(Dispatchers.IO)
+
+    // Simpler non-streaming version (returns full response at once)
+    fun generateStream(
+        prompt: String,
+        params: InferenceParams = InferenceParams()
+    ): Flow<String> = generateTokenStream(prompt, params)
 
     fun unloadModel() {
         if (nativeContext != 0L) {
@@ -189,9 +143,8 @@ object LlamaWrapper {
     }
 
     fun abortGeneration() {
-        if (nativeContext != 0L && isLoaded) {
-            nativeAbort(nativeContext)
-        }
+        abortRequested = true
+        if (nativeContext != 0L && isLoaded) nativeAbort(nativeContext)
     }
 
     fun isModelLoaded() = isLoaded
