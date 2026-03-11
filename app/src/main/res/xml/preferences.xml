@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory android:title="Inference">
+
+        <SeekBarPreference
+            android:key="pref_threads"
+            android:title="CPU Threads"
+            android:summary="Recommended: 4 for Unisoc T610"
+            android:defaultValue="4"
+            android:max="8"
+            app:min="1" />
+
+        <SeekBarPreference
+            android:key="pref_context_size"
+            android:title="Context Size (tokens)"
+            android:summary="Higher = more memory. Recommended: 2048"
+            android:defaultValue="2048"
+            android:max="4096"
+            app:min="512" />
+
+        <SeekBarPreference
+            android:key="pref_max_tokens"
+            android:title="Max Response Tokens"
+            android:summary="Max tokens in each reply"
+            android:defaultValue="512"
+            android:max="2048"
+            app:min="64" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Sampling">
+
+        <EditTextPreference
+            android:key="pref_temperature"
+            android:title="Temperature"
+            android:summary="0.0 = deterministic, 1.0 = creative. Default: 0.7"
+            android:defaultValue="0.7" />
+
+        <EditTextPreference
+            android:key="pref_system_prompt"
+            android:title="System Prompt"
+            android:summary="Customize the AI persona"
+            android:defaultValue="You are a helpful, concise AI assistant running locally on a mobile device." />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="About">
+
+        <Preference
+            android:key="pref_version"
+            android:title="Version"
+            android:summary="LocalAI 1.0 — ARM64 build for Unisoc T610" />
+
+        <Preference
+            android:key="pref_device"
+            android:title="Device optimization"
+            android:summary="4 threads • 4GB RAM • mmap enabled • no GPU layers" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

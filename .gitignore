@@ -1,0 +1,24 @@
+# Android
+*.iml
+.gradle/
+local.properties
+.idea/
+.DS_Store
+build/
+app/build/
+captures/
+.externalNativeBuild/
+.cxx/
+app/.cxx/
+
+# llama.cpp source (cloned by CI)
+app/src/main/cpp/llama.cpp/
+
+# Keys / secrets
+*.jks
+*.keystore
+release.properties
+
+# Temp files
+*.tmp
+*.gguf

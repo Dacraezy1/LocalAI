@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LocalAI</string>
+    <string name="no_model_loaded">No model selected. Tap ⊞ to download a model.</string>
+    <string name="loading_model">Loading model…</string>
+    <string name="generating">Thinking…</string>
+    <string name="action_clear">Clear chat</string>
+    <string name="action_settings">Settings</string>
+</resources>

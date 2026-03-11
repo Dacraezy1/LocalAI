@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:elevation="0dp"
+        app:liftOnScroll="true">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/surface"
+            app:title="@string/app_name"
+            app:titleTextColor="@color/on_surface"
+            app:subtitleTextColor="@color/on_surface_secondary">
+
+            <ImageButton
+                android:id="@+id/btn_model"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="end"
+                android:layout_marginEnd="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Select model"
+                android:src="@drawable/ic_model"
+                android:tint="@color/accent" />
+
+        </androidx.appcompat.widget.Toolbar>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Status / Progress bar (shown when loading model) -->
+    <LinearLayout
+        android:id="@+id/status_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_anchor="@id/appbar"
+        app:layout_anchorGravity="bottom">
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:indeterminate="true"
+            android:visibility="gone"
+            android:indeterminateTint="@color/accent" />
+
+    </LinearLayout>
+
+    <!-- Chat messages -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_chat"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingBottom="84dp"
+        android:paddingTop="8dp"
+        android:scrollbarThumbVertical="@color/surface_variant"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+    <!-- Bottom bar: input + send -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/surface"
+        android:elevation="8dp"
+        android:orientation="vertical"
+        android:paddingTop="4dp"
+        android:paddingBottom="8dp">
+
+        <!-- Token speed indicator -->
+        <TextView
+            android:id="@+id/tv_speed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:textColor="@color/on_surface_secondary"
+            android:textSize="11sp"
+            android:visibility="gone" />
+
+        <!-- Status message (no model / error) -->
+        <TextView
+            android:id="@+id/tv_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="4dp"
+            android:textColor="@color/on_surface_secondary"
+            android:textSize="12sp"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingEnd="8dp"
+            android:gravity="center_vertical">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                app:boxBackgroundMode="outline"
+                app:boxBackgroundColor="@color/surface_variant"
+                app:boxCornerRadiusTopStart="20dp"
+                app:boxCornerRadiusTopEnd="20dp"
+                app:boxCornerRadiusBottomStart="20dp"
+                app:boxCornerRadiusBottomEnd="20dp"
+                app:boxStrokeWidth="0dp"
+                app:hintEnabled="false">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@null"
+                    android:hint="Message…"
+                    android:imeOptions="actionSend"
+                    android:inputType="textMultiLine|textCapSentences"
+                    android:maxLines="4"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="12dp"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp"
+                    android:textColor="@color/on_surface"
+                    android:textSize="15sp" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Send button -->
+            <ImageButton
+                android:id="@+id/btn_send"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_send_button"
+                android:contentDescription="Send"
+                android:src="@drawable/ic_send"
+                android:tint="@color/on_accent"
+                android:visibility="visible" />
+
+            <!-- Stop button (shown during generation) -->
+            <ImageButton
+                android:id="@+id/btn_stop"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_stop_button"
+                android:contentDescription="Stop"
+                android:src="@drawable/ic_stop"
+                android:tint="@color/error"
+                android:visibility="gone" />
+
+        </LinearLayout>
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

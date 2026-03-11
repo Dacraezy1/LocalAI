@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base colors -->
+    <color name="background">#0F0F12</color>
+    <color name="surface">#1A1A1F</color>
+    <color name="surface_variant">#25252C</color>
+    <color name="outline">#35353E</color>
+
+    <!-- Text colors -->
+    <color name="on_surface">#F0F0F5</color>
+    <color name="on_surface_secondary">#8888A0</color>
+
+    <!-- Accent (green — like a terminal) -->
+    <color name="accent">#4AFFA0</color>
+    <color name="accent_dark">#2ACC7A</color>
+    <color name="on_accent">#0A1A12</color>
+
+    <!-- Status colors -->
+    <color name="error">#FF5757</color>
+    <color name="warning">#FFB845</color>
+    <color name="success">#4AFFA0</color>
+
+    <!-- Bubble colors -->
+    <color name="bubble_user">#2ACC7A</color>
+    <color name="bubble_assistant">#1E1E26</color>
+    <color name="dot_color">#4AFFA0</color>
+</resources>
