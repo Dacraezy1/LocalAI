@@ -271,7 +271,7 @@ class HuggingFaceFragment(
                 b.tvHfStatus.text = "Error: ${result.error}"
                 b.tvHfStatus.isVisible = true
             } else if (result.models.isEmpty()) {
-                b.tvHfStatus.text = "No GGUF models found for "$query""
+                b.tvHfStatus.text = "No GGUF models found for \"$query\""
                 b.tvHfStatus.isVisible = true
             } else {
                 adapter.submitList(result.models)
