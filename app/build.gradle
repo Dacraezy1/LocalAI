@@ -127,8 +127,11 @@ dependencies {
     // Preferences
     implementation 'androidx.preference:preference-ktx:1.2.1'
 
-    // Swipe-to-dismiss
+    // Swipe-to-refresh
     implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
+
+    // ViewPager2 for tab navigation
+    implementation 'androidx.viewpager2:viewpager2:1.0.0'
 
     // Testing
     testImplementation 'junit:junit:4.13.2'
